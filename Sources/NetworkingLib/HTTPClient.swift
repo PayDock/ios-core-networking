@@ -8,7 +8,7 @@
 
 import Foundation
 
-protocol HTTPClient {
+public protocol HTTPClient {
 
     func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type) async throws -> T
 
@@ -33,7 +33,7 @@ extension HTTPClient {
 
     // MARK: - Default implementation
 
-    func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type) async throws -> T {
+    public func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type) async throws -> T {
         var urlComponents = URLComponents()
         urlComponents.scheme = endpoint.scheme
         urlComponents.host = endpoint.host

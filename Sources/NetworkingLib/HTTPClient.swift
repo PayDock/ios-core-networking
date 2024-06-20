@@ -1,6 +1,6 @@
 //
 //  HTTPClient.swift
-//  ExampleApp
+//  NetworkingLib
 //
 //  Created by Domagoj Grizelj on 02.10.2023..
 //  Copyright © 2023 Paydock Ltd. All rights reserved.

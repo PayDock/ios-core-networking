@@ -1,6 +1,6 @@
 //
 //  Endpoint.swift
-//  ExampleApp
+//  NetworkingLib
 //
 //  Created by Domagoj Grizelj on 02.10.2023..
 //  Copyright © 2023 Paydock Ltd. All rights reserved.
@@ -17,6 +17,7 @@ public protocol Endpoint {
     var header: [String: String]? { get }
     var body: Data? { get }
     var parameters: [URLQueryItem] { get }
+    var encoder: JSONEncoder { get }
 
 }
 
@@ -28,6 +29,12 @@ public extension Endpoint {
 
     var host: String {
         return NetworkingLib.shared.host
+    }
+
+    var encoder: JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .convertToSnakeCase
+        return encoder
     }
 
 }

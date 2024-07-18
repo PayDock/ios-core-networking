@@ -22,12 +22,7 @@ final class NetworkingLibPositiveTests: XCTestCase {
     override func setUp() {
         super.setUp()
 
-        self.httpClient = {
-            let sessionConfiguration = URLSessionConfiguration.ephemeral
-            sessionConfiguration.protocolClasses = [MockURLProtocol.self]
-            let session = URLSession(configuration: sessionConfiguration)
-            return HTTPClientImpl(session: session)
-        }()
+        self.httpClient = HTTPClientTestable()
         self.endpoint = MockEndpoint()
     }
 

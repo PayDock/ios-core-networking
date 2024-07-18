@@ -10,39 +10,38 @@ import Foundation
 
 public protocol HTTPClient {
 
+    var session: URLSession { get }
+    var decoder: JSONDecoder { get }
+    var sslPinningManager: SSLPinningManager { get }
+
     func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type) async throws -> T
 
 }
 
-final class HTTPClientImpl {
+extension HTTPClient {
 
-    private let session: URLSession
-    private let sslPinningManager: SSLPinningManager
-    private let decoder: JSONDecoder = {
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return decoder
-    }()
+    // MARK: - Variables
 
-    convenience init() {
-        let sslPinningManager = SSLPinningManager()
+    public var sslPinningManager: SSLPinningManager {
+        return SSLPinningManager()
+    }
+
+    // MARK: - Default implementation
+
+    public var session: URLSession {
         let configuration = URLSessionConfiguration.default
         configuration.waitsForConnectivity = true
         configuration.timeoutIntervalForRequest = 60
         configuration.timeoutIntervalForResource = 300
-        self.init(session: URLSession(configuration: configuration, delegate: sslPinningManager, delegateQueue: nil))
+
+        return URLSession(configuration: configuration, delegate: sslPinningManager, delegateQueue: nil)
     }
 
-    init(session: URLSession,
-         sslPinningManager: SSLPinningManager = SSLPinningManager()) {
-        self.sslPinningManager = SSLPinningManager()
-        self.session = session
+    public var decoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.keyDecodingStrategy = .convertFromSnakeCase
+        return decoder
     }
-}
-
-// MARK: - HTTPClient
-
-extension HTTPClientImpl: HTTPClient {
 
     public func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type) async throws -> T {
         var urlComponents = URLComponents()

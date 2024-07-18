@@ -30,11 +30,31 @@ final class ApiClientTests: XCTestCase {
         MockURLProtocol.requestHandler = { request in
             let exampleData =
             """
-            {"id":1,"title":"Hello, world!"}
+            {"id":1,"title":"Hello, World!"}
             """
-                .data(using: .utf8)!
+            .data(using: .utf8)!
             let response = HTTPURLResponse.init(url: request.url!, statusCode: 200, httpVersion: "2.0", headerFields: nil)!
             return (response, exampleData)
+        }
+    }
+
+    func testAsyncRequest() async throws {
+
+        let sessionConfiguration = URLSessionConfiguration.ephemeral
+        sessionConfiguration.protocolClasses = [MockURLProtocol.self]
+        let session = URLSession(configuration: sessionConfiguration)
+        setMockProtocol()
+
+        let apiClient = HTTPClientImpl(session: session)
+        let endpoint = MockEndpoint()
+
+        do {
+            let result = try await apiClient.sendRequest(endpoint: endpoint, responseModel: TestModel.self)
+            XCTAssertEqual(result.id, 1)
+            XCTAssertEqual(result.title, "Hello, World!")
+        } catch {
+            print(error.localizedDescription)
+            throw error
         }
     }
 

@@ -10,26 +10,20 @@ import Foundation
 @testable import NetworkingLib
 
 class MockHTTPClient: Mockable, HTTPClient {
-    var session: URLSession {
-        let sessionConfiguration = URLSessionConfiguration.ephemeral
-        sessionConfiguration.protocolClasses = [MockURLProtocol.self]
-        let session = URLSession(configuration: sessionConfiguration)
-        return session
+
+    var sendError: Bool
+    var mockFile: String?
+
+    init(sendError: Bool = false, mockFile: String? = nil) {
+        self.sendError = sendError
+        self.mockFile = mockFile
     }
 
-    var sslPinningManager: SSLPinningManager {
-        return SSLPinningManager()
+    func sendRequest<T>(endpoint: any Endpoint, responseModel: T.Type) async throws -> T where T : Decodable {
+        if sendError {
+            throw RequestError.requestError(ErrorRes(status: 1, error: .init(message: "Error", code: "ErrorCode"), resource: nil, errorSummary: nil))
+        } else {
+            return loadJSON(filename: "test", type: responseModel.self)
+        }
     }
-
-    var decoder: JSONDecoder {
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        return decoder
-    }
-
-
-    func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type) async throws -> T {
-        return loadJSON(filename: "test", type: responseModel.self)
-    }
-
 }

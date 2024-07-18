@@ -85,9 +85,8 @@ extension HTTPClientImpl: HTTPClient {
             default:
                 throw RequestError.unexpectedStatusCode
             }
-
-        } catch {
-            throw RequestError.unknown
+        } catch let error {
+            throw error
         }
     }
 

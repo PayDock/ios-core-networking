@@ -21,9 +21,6 @@ let package = Package(
             name: "NetworkingLib"),
         .testTarget(
             name: "NetworkingLibTests",
-            dependencies: ["NetworkingLib"],
-            resources: [
-                .copy("Resources/JSON/test.json")]
-        ),
+            dependencies: ["NetworkingLib"]),
     ]
 )

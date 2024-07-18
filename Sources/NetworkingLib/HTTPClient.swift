@@ -10,6 +10,9 @@ import Foundation
 
 public protocol HTTPClient {
 
+    var session: URLSession { get }
+    var decoder: JSONDecoder { get }
+
     func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type) async throws -> T
 
 }

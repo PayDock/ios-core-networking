@@ -44,49 +44,64 @@ extension HTTPClient {
     }
 
     public func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type) async throws -> T {
-        var urlComponents = URLComponents()
-        urlComponents.scheme = endpoint.scheme
-        urlComponents.host = endpoint.host
-        urlComponents.path = endpoint.path
-        urlComponents.queryItems = endpoint.parameters
+            var urlComponents = URLComponents()
+            urlComponents.scheme = endpoint.scheme
+            urlComponents.host = endpoint.host
+            urlComponents.path = endpoint.path
+            urlComponents.queryItems = endpoint.parameters
 
-        guard let url = urlComponents.url else {
-            throw RequestError.invalidURL
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = endpoint.method.rawValue
-        request.allHTTPHeaderFields = endpoint.header
-
-        if let body = endpoint.body {
-            request.httpBody = body
-        }
-
-        do {
-            NetworkLogger.log(request: request)
-            let (data, response) = try await session.data(for: request, delegate: nil)
-            NetworkLogger.log(data: data, response: response as? HTTPURLResponse, error: nil)
-
-            guard let response = response as? HTTPURLResponse else {
-                throw RequestError.noResponse
+            guard let url = urlComponents.url else {
+                throw RequestError.invalidURL
             }
 
-            switch response.statusCode {
-            case 200...299:
-                guard let decodedResponse = try? decoder.decode(responseModel, from: data) else {
-                    throw RequestError.decode
+            var request = URLRequest(url: url)
+            request.httpMethod = endpoint.method.rawValue
+            request.allHTTPHeaderFields = endpoint.header
+            request.httpBody = endpoint.body
+
+            #if DEBUG
+                NetworkLogger.log(request: request)
+            #endif
+
+            do {
+                let (data, response) = try await session.data(for: request, delegate: nil)
+                
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw RequestError.noResponse
                 }
-                return decodedResponse
+                
+                #if DEBUG
+                    NetworkLogger.log(data: data, response: httpResponse, error: nil)
+                #endif
 
-            case 401:
-                throw RequestError.unauthorized
+                switch httpResponse.statusCode {
+                case 200...299:
+                    do {
+                        return try decoder.decode(responseModel, from: data)
+                    } catch {
+                        throw RequestError.decode
+                    }
 
-            default:
-                throw RequestError.unexpectedStatusCode
+                default:
+                    if let errorResponse = try? decoder.decode(ErrorRes.self, from: data) {
+                        throw RequestError.requestError(errorResponse)
+                    }
+                    throw RequestError.unexpectedErrorModel
+                }
+            } catch let urlError as URLError {
+                switch urlError.code {
+                case .notConnectedToInternet, .timedOut, .cannotFindHost, .cannotConnectToHost, .networkConnectionLost, .secureConnectionFailed:
+                    throw RequestError.connectionError(urlError)
+                case .unsupportedURL, .badURL:
+                    throw RequestError.invalidRequest(urlError)
+                case .badServerResponse, .resourceUnavailable, .httpTooManyRedirects:
+                    throw RequestError.serverError(urlError)
+                default:
+                    throw RequestError.unknown(urlError)
+                }
+            } catch {
+                throw error
             }
-        } catch let error {
-            throw error
         }
-    }
 
 }

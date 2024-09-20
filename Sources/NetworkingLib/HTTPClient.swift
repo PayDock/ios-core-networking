@@ -12,7 +12,7 @@ public protocol HTTPClient {
 
     var session: URLSession { get }
     var decoder: JSONDecoder { get }
-    var sslPinningManager: SSLPinningManager { get }
+    var sslPinningManager: SSLPinningManager? { get }
 
     func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type) async throws -> T
 
@@ -22,7 +22,10 @@ extension HTTPClient {
 
     // MARK: - Variables
 
-    public var sslPinningManager: SSLPinningManager {
+    public var sslPinningManager: SSLPinningManager? {
+        guard NetworkingLib.shared.publicKeyHash != nil else {
+            return nil
+        }
         return SSLPinningManager()
     }
 

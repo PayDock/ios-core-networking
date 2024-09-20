@@ -10,7 +10,7 @@ public class NetworkingLib {
 
     public static let shared = NetworkingLib()
 
-    public var publicKeyHash: String = ""
+    public var publicKeyHash: String? = nil
     public var host: String = ""
 
 }

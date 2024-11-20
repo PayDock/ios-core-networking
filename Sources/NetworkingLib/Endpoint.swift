@@ -18,6 +18,8 @@ public protocol Endpoint {
     var body: Data? { get }
     var parameters: [URLQueryItem] { get }
     var encoder: JSONEncoder { get }
+    var mockFile: String? { get }
+    var bundle: Bundle? { get }
 
 }
 

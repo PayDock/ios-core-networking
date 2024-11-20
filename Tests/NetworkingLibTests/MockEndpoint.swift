@@ -18,4 +18,6 @@ struct MockEndpoint: Endpoint {
     var body: Data? = nil
     var parameters: [URLQueryItem] = []
     var encoder: JSONEncoder = JSONEncoder()
+    var mockFile: String? = nil
+    var bundle: Bundle? = nil
 }

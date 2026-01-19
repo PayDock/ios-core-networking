@@ -2,9 +2,7 @@
 //  MockURLProtocol.swift
 //  NetworkLibTests
 //
-//  Copyright © 2024 Paydock Ltd.
-//  Created by Domagoj Grizelj on 18.07.2024..
-//
+//  Copyright © 2026 Paydock Ltd. All rights reserved.
 
 import Foundation
 
@@ -32,7 +30,7 @@ class MockURLProtocol: URLProtocol {
             client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
             client?.urlProtocol(self, didLoad: data)
             client?.urlProtocolDidFinishLoading(self)
-        } catch  {
+        } catch {
             client?.urlProtocol(self, didFailWithError: error)
         }
     }

@@ -6,13 +6,14 @@ import PackageDescription
 let package = Package(
     name: "NetworkingLib",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v16),
+        .macOS(.v12)
     ],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "NetworkingLib",
-            targets: ["NetworkingLib"]),
+            targets: ["NetworkingLib"])
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -21,6 +22,6 @@ let package = Package(
             name: "NetworkingLib"),
         .testTarget(
             name: "NetworkingLibTests",
-            dependencies: ["NetworkingLib"]),
+            dependencies: ["NetworkingLib"])
     ]
 )

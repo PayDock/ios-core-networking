@@ -2,15 +2,13 @@
 //  MockHTTPClient.swift
 //  NetworkingLib
 //
-//  Created by Domagoj Grizelj on 08.10.2024..
-//
+//  Copyright © 2026 Paydock Ltd. All rights reserved.
 
 import Foundation
 
 public protocol MockHTTPClient: HTTPClient {
 
     func loadJSON<T: Decodable>(filename: String?, bundle: Bundle?, type: T.Type) -> T
-
 }
 
 public extension MockHTTPClient {
@@ -35,13 +33,11 @@ public extension MockHTTPClient {
             fatalError("Failed to decode loaded JSON")
         }
     }
-
 }
 
 public extension MockHTTPClient {
-    
+
     func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type) async throws -> T {
         return loadJSON(filename: endpoint.mockFile, bundle: endpoint.bundle, type: responseModel.self)
     }
-    
 }

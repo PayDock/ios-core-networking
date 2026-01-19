@@ -1,93 +1,403 @@
-# mobile-lib-networking-ios
+# NetworkingLib
 
+A modern, Swift-based networking library for iOS applications that provides a clean, protocol-oriented API for making HTTP requests with support for SSL pinning, error handling, and network logging.
 
+## Features
 
-## Getting started
+- 🚀 **Protocol-Oriented Design**: Clean, testable architecture using protocols
+- 🔒 **SSL Pinning**: Built-in SSL certificate pinning support for enhanced security
+- 📝 **Network Logging**: Debug logging for requests and responses (DEBUG builds only)
+- 🎯 **Type-Safe**: Generic request/response handling with Codable support
+- ⚡ **Async/Await**: Modern Swift concurrency support
+- 🛡️ **Error Handling**: Comprehensive error types for different failure scenarios
+- 🔧 **Configurable**: Customizable URLSession configuration and timeouts
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Requirements
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://gitlab.com/paydock/bounded-contexts/mobile/mobile-lib-networking-ios.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-- [ ] [Set up project integrations](https://gitlab.com/paydock/bounded-contexts/mobile/mobile-lib-networking-ios/-/settings/integrations)
-
-## Collaborate with your team
-
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+- iOS 16.0+
+- macOS 12.0+
+- Swift 5.10+
+- Xcode 15.0+
 
 ## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+
+### Swift Package Manager
+
+Add the following to your `Package.swift` file:
+
+```swift
+dependencies: [
+    .package(url: "https://gitlab.com/paydock/bounded-contexts/mobile/mobile-lib-networking-ios.git", from: "1.0.0")
+]
+```
+
+Or add it through Xcode:
+1. File → Add Packages...
+2. Enter the repository URL
+3. Select the version you want to use
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+### Basic Setup
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+First, configure the shared `NetworkingLib` instance:
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```swift
+import NetworkingLib
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+// Set the base host
+NetworkingLib.shared.host = "api.example.com"
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+// Optionally configure SSL pinning
+NetworkingLib.shared.publicKeyHash = "your-public-key-hash"
+```
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+### Creating an Endpoint
+
+Create an endpoint by conforming to the `Endpoint` protocol:
+
+```swift
+struct GetUserEndpoint: Endpoint {
+    let userId: String
+    
+    var path: String {
+        return "/users/\(userId)"
+    }
+    
+    var method: RequestMethod {
+        return .get
+    }
+    
+    var header: [String: String]? {
+        return [
+            "Authorization": "Bearer \(token)",
+            "Content-Type": "application/json"
+        ]
+    }
+    
+    var parameters: [URLQueryItem] {
+        return [
+            URLQueryItem(name: "include", value: "profile")
+        ]
+    }
+}
+```
+
+### Making Requests
+
+Create a class that conforms to `HTTPClient`:
+
+```swift
+class APIClient: HTTPClient {
+    // Default implementations are provided by the protocol extension
+}
+
+let client = APIClient()
+let endpoint = GetUserEndpoint(userId: "123")
+
+do {
+    let user: User = try await client.sendRequest(
+        endpoint: endpoint,
+        responseModel: User.self
+    )
+    print("User: \(user)")
+} catch let error as RequestError {
+    print("Error: \(error.customMessage)")
+} catch {
+    print("Unexpected error: \(error)")
+}
+```
+
+### POST Request Example
+
+```swift
+struct CreateUserEndpoint: Endpoint {
+    let userData: UserData
+    
+    var path: String {
+        return "/users"
+    }
+    
+    var method: RequestMethod {
+        return .post
+    }
+    
+    var header: [String: String]? {
+        return ["Content-Type": "application/json"]
+    }
+    
+    var body: Data? {
+        return try? encoder.encode(userData)
+    }
+    
+    var parameters: [URLQueryItem] {
+        return []
+    }
+}
+```
+
+### Error Handling
+
+The library provides comprehensive error handling through `RequestError`:
+
+```swift
+do {
+    let result = try await client.sendRequest(endpoint: endpoint, responseModel: Model.self)
+} catch let error as RequestError {
+    switch error {
+    case .connectionError(let urlError):
+        // Handle network connection issues
+        print("Connection error: \(urlError.localizedDescription)")
+    case .decode:
+        // Handle JSON decoding errors
+        print("Failed to decode response")
+    case .invalidURL:
+        // Handle invalid URL construction
+        print("Invalid URL")
+    case .requestError(let errorRes):
+        // Handle API error responses
+        print("API error: \(errorRes.error?.message ?? "Unknown error")")
+    case .serverError(let urlError):
+        // Handle server errors
+        print("Server error: \(urlError.localizedDescription)")
+    default:
+        print("Error: \(error.customMessage)")
+    }
+}
+```
+
+## API Reference
+
+### Protocols
+
+#### `HTTPClient`
+
+The main protocol for making HTTP requests.
+
+```swift
+protocol HTTPClient {
+    var session: URLSession { get }
+    var decoder: JSONDecoder { get }
+    var sslPinningManager: SSLPinningManager? { get }
+    
+    func sendRequest<T: Decodable>(
+        endpoint: Endpoint,
+        responseModel: T.Type
+    ) async throws -> T
+}
+```
+
+#### `Endpoint`
+
+Protocol for defining API endpoints.
+
+```swift
+protocol Endpoint {
+    var scheme: String { get }           // Default: "https"
+    var host: String { get }            // Default: NetworkingLib.shared.host
+    var path: String { get }
+    var method: RequestMethod { get }
+    var header: [String: String]? { get }
+    var body: Data? { get }
+    var parameters: [URLQueryItem] { get }
+    var encoder: JSONEncoder { get }    // Default: JSONEncoder()
+}
+```
+
+### Enums
+
+#### `RequestMethod`
+
+HTTP methods supported by the library:
+
+- `.get`
+- `.post`
+- `.put`
+- `.patch`
+- `.delete`
+
+#### `RequestError`
+
+Error types for different failure scenarios:
+
+- `.connectionError(URLError)` - Network connectivity issues
+- `.decode` - JSON decoding failures
+- `.invalidRequest(URLError)` - Invalid request configuration
+- `.invalidURL` - URL construction failures
+- `.noResponse` - Missing HTTP response
+- `.serverError(URLError)` - Server-side errors
+- `.unexpectedErrorModel` - Unexpected error response format
+- `.requestError(ErrorRes)` - API error responses
+- `.unknown(URLError)` - Unknown errors
+
+### Classes
+
+#### `NetworkingLib`
+
+Singleton for library configuration:
+
+```swift
+NetworkingLib.shared.host = "api.example.com"
+NetworkingLib.shared.publicKeyHash = "base64-encoded-hash"
+```
+
+#### `SSLPinningManager`
+
+Handles SSL certificate pinning. Automatically enabled when `publicKeyHash` is set.
+
+## SSL Pinning
+
+SSL pinning is automatically enabled when you set `NetworkingLib.shared.publicKeyHash`. The library uses RSA 2048 public key pinning with SHA-256 hashing.
+
+To get your server's public key hash:
+
+1. Extract the certificate from your server
+2. Get the public key from the certificate
+3. Calculate the SHA-256 hash with RSA 2048 ASN.1 header
+4. Base64 encode the hash
+
+## Network Logging
+
+Network logging is automatically enabled in DEBUG builds. It logs:
+- Request URL, method, headers, and body
+- Response status code, headers, and body
+- Errors (if any)
+
+Logs are printed to the console using `print()`.
+
+## Testing
+
+The library includes comprehensive test coverage with 53+ tests covering:
+
+- ✅ HTTP client functionality and request/response handling
+- ✅ Error handling and error types
+- ✅ Endpoint configuration
+- ✅ Request methods (GET, POST, PUT, PATCH, DELETE)
+- ✅ Query parameters, headers, and body handling
+- ✅ JSON decoding with snake_case conversion
+- ✅ SSL pinning manager initialization
+- ✅ Network configuration
+
+To run tests:
+
+```bash
+swift test
+```
+
+Or in Xcode:
+1. Press `Cmd+U` to run tests
+2. Or use Product → Test
+
+
+## Configuration
+
+### URLSession Configuration
+
+The default `URLSession` configuration includes:
+
+- `waitsForConnectivity = true`
+- `timeoutIntervalForRequest = 60` seconds
+- `timeoutIntervalForResource = 300` seconds
+
+You can override the `session` property in your `HTTPClient` implementation to customize these settings.
+
+### JSON Encoding and Decoding
+
+#### Decoding (Responses)
+
+The default `JSONDecoder` uses `.convertFromSnakeCase` key decoding strategy. This means that JSON keys like `user_id` and `created_at` are automatically converted to Swift property names like `userId` and `createdAt`.
+
+#### Encoding (Requests)
+
+The default `JSONEncoder` in the `Endpoint` protocol uses `.convertToSnakeCase` key encoding strategy. This means that Swift property names like `userId` and `createdAt` are automatically converted to JSON keys like `user_id` and `created_at` when encoding request bodies.
+
+**Example:**
+
+```swift
+struct CreateUserEndpoint: Endpoint {
+    let userData: UserData
+    
+    var path: String {
+        return "/users"
+    }
+    
+    var method: RequestMethod {
+        return .post
+    }
+    
+    var body: Data? {
+        // UserData has properties: userId, userName, createdAt
+        // These will be encoded as: user_id, user_name, created_at
+        return try? encoder.encode(userData)
+    }
+}
+
+struct UserData: Codable {
+    let userId: Int
+    let userName: String
+    let createdAt: String
+}
+```
+
+When this endpoint is used, the request body will be automatically encoded in snake_case:
+```json
+{
+    "user_id": 123,
+    "user_name": "testuser",
+    "created_at": "2024-01-01"
+}
+```
+
+#### Custom Encoding/Decoding
+
+**Important**: If your model needs to handle special fields that don't follow snake_case convention (like `_id` or `_3ds`), you can use explicit `CodingKeys`:
+
+```swift
+struct MyModel: Codable {
+    let id: String
+    let userName: String
+    let threeDS: String
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case userName = "user_name"  // Still need to map snake_case fields
+        case threeDS = "_3ds"
+    }
+}
+```
+
+**Note**: When you define `CodingKeys`, you must provide mappings for ALL properties. The snake_case conversion is ignored when `CodingKeys` are present, so you need to explicitly map all fields including snake_case ones.
+
+#### Overriding Default Behavior
+
+You can override the `encoder` property in your `Endpoint` implementation to customize encoding behavior:
+
+```swift
+struct CustomEndpoint: Endpoint {
+    var encoder: JSONEncoder {
+        let encoder = JSONEncoder()
+        encoder.keyEncodingStrategy = .useDefaultKeys  // Use camelCase instead
+        return encoder
+    }
+    // ... other properties
+}
+```
+
+Similarly, you can override the `decoder` property in your `HTTPClient` implementation to customize decoding behavior.
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Copyright © 2026 Paydock Ltd. All rights reserved.
+
+## Contributing
+
+Contributions are welcome! Please ensure:
+
+1. All tests pass
+2. New code includes appropriate tests
+3. Code follows Swift style guidelines
+4. Documentation is updated for new features
+
+## Support
+
+For issues, questions, or contributions, please open an issue on the repository.

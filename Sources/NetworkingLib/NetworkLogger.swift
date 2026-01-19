@@ -2,15 +2,13 @@
 //  NetworkLogger.swift
 //  NetworkingLib
 //
-//  Created by Domagoj Grizelj on 03.10.2023..
-//  Copyright © 2023 Paydock Ltd. All rights reserved.
-//
+//  Copyright © 2026 Paydock Ltd. All rights reserved.
 
 import Foundation
 
 class NetworkLogger {
 
-    class func log(request: URLRequest){
+    class func log(request: URLRequest) {
         let urlString = request.url?.absoluteString ?? ""
         let components = NSURLComponents(string: urlString)
 
@@ -27,7 +25,7 @@ class NetworkLogger {
         for (key, value) in request.allHTTPHeaderFields ?? [:] {
             requestLog += "\(key): \(value)\n"
         }
-        if let body = request.httpBody{
+        if let body = request.httpBody {
             let bodyString = NSString(data: body, encoding: String.Encoding.utf8.rawValue) ?? "Can't render body; not utf8 encoded"
             requestLog += "\n\(bodyString)\n"
         }
@@ -36,7 +34,7 @@ class NetworkLogger {
         print(requestLog)
     }
 
-    class func log(data: Data?, response: HTTPURLResponse?, error: Error?){
+    class func log(data: Data?, response: HTTPURLResponse?, error: Error?) {
 
         let urlString = response?.url?.absoluteString
         let components = NSURLComponents(string: urlString ?? "")
@@ -50,25 +48,24 @@ class NetworkLogger {
             responseLog += "\n\n"
         }
 
-        if let statusCode =  response?.statusCode{
+        if let statusCode = response?.statusCode {
             responseLog += "HTTP \(statusCode) \(path)?\(query)\n"
         }
-        if let host = components?.host{
+        if let host = components?.host {
             responseLog += "Host: \(host)\n"
         }
         for (key, value) in response?.allHeaderFields ?? [:] {
             responseLog += "\(key): \(value)\n"
         }
-        if let body = data{
+        if let body = data {
             let bodyString = NSString(data: body, encoding: String.Encoding.utf8.rawValue) ?? "Can't render body; not utf8 encoded"
             responseLog += "\n\(bodyString)\n"
         }
-        if let error = error{
+        if let error = error {
             responseLog += "\nError: \(error.localizedDescription)\n"
         }
 
         responseLog += "<------------------------\n"
         print(responseLog)
     }
-
 }

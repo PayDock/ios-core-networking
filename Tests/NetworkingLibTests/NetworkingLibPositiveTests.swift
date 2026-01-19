@@ -2,9 +2,7 @@
 //  NetworkingLibPositiveTests.swift
 //  NetworkingLibTests
 //
-//  Copyright © 2024 Paydock Ltd.
-//  Created by Domagoj Grizelj on 18.07.2024..
-//
+//  Copyright © 2026 Paydock Ltd. All rights reserved.
 
 import XCTest
 @testable import NetworkingLib
@@ -28,11 +26,9 @@ final class NetworkingLibPositiveTests: XCTestCase {
 
     private func setMockProtocol() {
         MockURLProtocol.requestHandler = { request in
-            let exampleData =
-            """
+            let exampleData = Data("""
             {"id":1,"title":"Hello, World!"}
-            """
-            .data(using: .utf8)!
+            """.utf8)
             let response = HTTPURLResponse.init(url: request.url!, statusCode: 200, httpVersion: "2.0", headerFields: nil)!
             return (response, exampleData)
         }

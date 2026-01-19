@@ -2,9 +2,7 @@
 //  Endpoint.swift
 //  NetworkingLib
 //
-//  Created by Domagoj Grizelj on 02.10.2023..
-//  Copyright © 2023 Paydock Ltd. All rights reserved.
-//
+//  Copyright © 2026 Paydock Ltd. All rights reserved.
 
 import Foundation
 
@@ -20,7 +18,6 @@ public protocol Endpoint {
     var encoder: JSONEncoder { get }
     var mockFile: String? { get }
     var bundle: Bundle? { get }
-
 }
 
 public extension Endpoint {
@@ -38,5 +35,4 @@ public extension Endpoint {
         encoder.keyEncodingStrategy = .convertToSnakeCase
         return encoder
     }
-
 }

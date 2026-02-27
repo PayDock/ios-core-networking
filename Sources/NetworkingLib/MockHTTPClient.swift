@@ -40,4 +40,21 @@ public extension MockHTTPClient {
     func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type) async throws -> T {
         return loadJSON(filename: endpoint.mockFile, bundle: endpoint.bundle, type: responseModel.self)
     }
+
+    func sendRequest<T: Decodable>(
+        endpoint: Endpoint,
+        responseModel: T.Type,
+        timeout: TimeInterval
+    ) async throws -> T {
+        return loadJSON(filename: endpoint.mockFile, bundle: endpoint.bundle, type: responseModel.self)
+    }
+
+    func sendRequest<T: Decodable>(
+        endpoint: Endpoint,
+        responseModel: T.Type,
+        timeout: TimeInterval,
+        maxRetries: Int
+    ) async throws -> T {
+        return loadJSON(filename: endpoint.mockFile, bundle: endpoint.bundle, type: responseModel.self)
+    }
 }

@@ -25,7 +25,7 @@ lane :testPackage do
   run_tests(
     package_path: ".",
     scheme: "NetworkingLib",
-    destination: "platform=iOS Simulator,name=iPhone 16",
+    destination: "platform=iOS Simulator,name=iPhone 17,OS=26.2",
     xcargs: "SWIFTPM_ENABLE_PLUGINS=1 SWIFTPM_ENABLE_COMMAND_PLUGINS=1",
     result_bundle_path: "fastlane/test_output/NetworkingLib.xcresult",
     code_coverage: true,

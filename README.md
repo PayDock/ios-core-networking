@@ -11,6 +11,8 @@ A modern, Swift-based networking library for iOS applications that provides a cl
 - ⚡ **Async/Await**: Modern Swift concurrency support
 - 🛡️ **Error Handling**: Comprehensive error types for different failure scenarios
 - 🔧 **Configurable**: Customizable URLSession configuration and timeouts
+- ⏱️ **Timeout Control**: Configurable request timeouts that apply to the entire operation
+- 🔄 **Automatic Retry**: Built-in retry logic with exponential backoff for connection errors
 
 ## Requirements
 
@@ -108,6 +110,46 @@ do {
 }
 ```
 
+### Request with Custom Timeout
+
+You can specify a custom timeout for individual requests. The timeout applies to the entire operation, including any time spent waiting for network connectivity:
+
+```swift
+do {
+    let user: User = try await client.sendRequest(
+        endpoint: endpoint,
+        responseModel: User.self,
+        timeout: 30.0  // 30 second timeout
+    )
+} catch let error as RequestError {
+    if case .connectionError(let urlError) = error, urlError.code == .timedOut {
+        print("Request timed out")
+    }
+}
+```
+
+### Request with Retry Logic
+
+For unreliable network conditions, you can enable automatic retry with exponential backoff. Retries are only performed for connection errors (network unavailable, timeout, connection lost, etc.):
+
+```swift
+do {
+    let user: User = try await client.sendRequest(
+        endpoint: endpoint,
+        responseModel: User.self,
+        timeout: 30.0,
+        maxRetries: 3  // Will attempt up to 4 times (1 initial + 3 retries)
+    )
+} catch {
+    print("Request failed after all retry attempts")
+}
+```
+
+**Retry behavior:**
+- Only connection errors trigger retries (e.g., `notConnectedToInternet`, `timedOut`, `networkConnectionLost`)
+- HTTP errors (4xx, 5xx) do **not** trigger retries
+- Exponential backoff: 1s, 2s, 4s, 8s... (max 30s between retries)
+
 ### POST Request Example
 
 ```swift
@@ -180,12 +222,34 @@ protocol HTTPClient {
     var decoder: JSONDecoder { get }
     var sslPinningManager: SSLPinningManager? { get }
     
+    // Basic request (60 second default timeout, no retries)
     func sendRequest<T: Decodable>(
         endpoint: Endpoint,
         responseModel: T.Type
     ) async throws -> T
+    
+    // Request with custom timeout
+    func sendRequest<T: Decodable>(
+        endpoint: Endpoint,
+        responseModel: T.Type,
+        timeout: TimeInterval
+    ) async throws -> T
+    
+    // Request with custom timeout and retry logic
+    func sendRequest<T: Decodable>(
+        endpoint: Endpoint,
+        responseModel: T.Type,
+        timeout: TimeInterval,
+        maxRetries: Int
+    ) async throws -> T
 }
 ```
+
+| Method | Timeout | Retries | Use Case |
+|--------|---------|---------|----------|
+| `sendRequest(endpoint:responseModel:)` | 60s | 0 | Standard requests |
+| `sendRequest(endpoint:responseModel:timeout:)` | Custom | 0 | Time-sensitive operations |
+| `sendRequest(endpoint:responseModel:timeout:maxRetries:)` | Custom | Custom | Unreliable network conditions |
 
 #### `Endpoint`
 
@@ -267,7 +331,7 @@ Logs are printed to the console using `print()`.
 
 ## Testing
 
-The library includes comprehensive test coverage with 53+ tests covering:
+The library includes comprehensive test coverage with 69+ tests covering:
 
 - ✅ HTTP client functionality and request/response handling
 - ✅ Error handling and error types
@@ -277,6 +341,8 @@ The library includes comprehensive test coverage with 53+ tests covering:
 - ✅ JSON decoding with snake_case conversion
 - ✅ SSL pinning manager initialization
 - ✅ Network configuration
+- ✅ Timeout behavior and custom timeouts
+- ✅ Retry logic with exponential backoff
 
 To run tests:
 
@@ -291,15 +357,34 @@ Or in Xcode:
 
 ## Configuration
 
-### URLSession Configuration
+### Timeout Configuration
+
+The library provides two levels of timeout control:
+
+**1. Per-Request Timeout (Recommended)**
+
+Use the `timeout` parameter in `sendRequest` to set a timeout for individual requests. This timeout applies to the **entire operation**, including any time spent waiting for network connectivity:
+
+```swift
+// 30 second timeout for this specific request
+let result = try await client.sendRequest(
+    endpoint: endpoint,
+    responseModel: Model.self,
+    timeout: 30.0
+)
+```
+
+**2. URLSession Configuration**
 
 The default `URLSession` configuration includes:
 
-- `waitsForConnectivity = true`
-- `timeoutIntervalForRequest = 60` seconds
-- `timeoutIntervalForResource = 300` seconds
+- `waitsForConnectivity = true` - Waits for network connectivity before starting
+- `timeoutIntervalForRequest = 60` seconds - Time between data packets
+- `timeoutIntervalForResource = 300` seconds - Total time for resource transfer
 
-You can override the `session` property in your `HTTPClient` implementation to customize these settings.
+**Important**: The per-request `timeout` parameter wraps the entire operation and will trigger even while waiting for connectivity. This prevents requests from hanging indefinitely when `waitsForConnectivity` is enabled.
+
+You can override the `session` property in your `HTTPClient` implementation to customize the URLSession settings.
 
 ### JSON Encoding and Decoding
 

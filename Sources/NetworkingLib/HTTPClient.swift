@@ -13,6 +13,12 @@ public protocol HTTPClient {
     var sslPinningManager: SSLPinningManager? { get }
 
     func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type) async throws -> T
+    func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type, timeout: TimeInterval) async throws -> T
+    func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type, timeout: TimeInterval, maxRetries: Int) async throws -> T
+}
+
+public enum NetworkingTimeoutError: Error {
+    case timedOut
 }
 
 // MARK: - Shared Session Manager
@@ -109,6 +115,37 @@ extension HTTPClient {
     }
 
     public func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type) async throws -> T {
+        return try await sendRequest(endpoint: endpoint, responseModel: responseModel, timeout: 60, maxRetries: 0)
+    }
+
+    public func sendRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type, timeout: TimeInterval) async throws -> T {
+        return try await sendRequest(endpoint: endpoint, responseModel: responseModel, timeout: timeout, maxRetries: 0)
+    }
+
+    public func sendRequest<T: Decodable>(
+        endpoint: Endpoint,
+        responseModel: T.Type,
+        timeout: TimeInterval,
+        maxRetries: Int
+    ) async throws -> T {
+        let maxAttempts = max(1, maxRetries + 1)
+
+        for attempt in 1...maxAttempts {
+            do {
+                return try await performRequest(endpoint: endpoint, responseModel: responseModel, timeout: timeout)
+            } catch let error as RequestError {
+                guard case .connectionError = error, attempt < maxAttempts else {
+                    throw error
+                }
+                let delay = calculateRetryDelay(attempt: attempt)
+                try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+            }
+        }
+
+        throw RequestError.noResponse
+    }
+
+    private func performRequest<T: Decodable>(endpoint: Endpoint, responseModel: T.Type, timeout: TimeInterval) async throws -> T {
         var urlComponents = URLComponents()
         urlComponents.scheme = endpoint.scheme
         urlComponents.host = endpoint.host
@@ -129,7 +166,9 @@ extension HTTPClient {
         #endif
 
         do {
-            let (data, response) = try await session.data(for: request, delegate: nil)
+            let (data, response) = try await withTimeout(seconds: timeout) {
+                try await self.session.data(for: request, delegate: nil)
+            }
 
             guard let httpResponse = response as? HTTPURLResponse else {
                 throw RequestError.noResponse
@@ -141,7 +180,6 @@ extension HTTPClient {
 
             switch httpResponse.statusCode {
             case 200...299:
-                // Decode JSON on background queue to avoid blocking main thread
                 do {
                     return try await Task.detached(priority: .userInitiated) {
                         try decoder.decode(responseModel, from: data)
@@ -151,14 +189,53 @@ extension HTTPClient {
                 }
 
             default:
-                // Decode error response on background queue
                 try await handleErrorResponse(data: data, decoder: decoder)
             }
+        } catch is NetworkingTimeoutError {
+            throw RequestError.connectionError(URLError(.timedOut))
         } catch let urlError as URLError {
             throw mapURLError(urlError)
         } catch {
             throw error
         }
+    }
+
+    private func withTimeout<T>(seconds: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
+        let nanoseconds = safeNanoseconds(from: seconds)
+
+        return try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask {
+                try await operation()
+            }
+
+            group.addTask {
+                try await Task.sleep(nanoseconds: nanoseconds)
+                throw NetworkingTimeoutError.timedOut
+            }
+
+            guard let result = try await group.next() else {
+                throw NetworkingTimeoutError.timedOut
+            }
+
+            group.cancelAll()
+            return result
+        }
+    }
+
+    private func safeNanoseconds(from seconds: TimeInterval) -> UInt64 {
+        guard seconds.isFinite, seconds > 0 else {
+            return UInt64(60 * 1_000_000_000)
+        }
+        let maxSeconds: TimeInterval = 3600
+        let clampedSeconds = min(seconds, maxSeconds)
+        return UInt64(clampedSeconds * 1_000_000_000)
+    }
+
+    private func calculateRetryDelay(attempt: Int) -> TimeInterval {
+        let baseDelay: TimeInterval = 1.0
+        let maxDelay: TimeInterval = 30.0
+        let delay = baseDelay * pow(2.0, Double(attempt - 1))
+        return min(delay, maxDelay)
     }
 
     // MARK: - Private Helpers

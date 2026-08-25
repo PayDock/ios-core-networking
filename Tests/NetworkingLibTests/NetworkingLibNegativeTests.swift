@@ -75,7 +75,8 @@ final class NetworkingLibNegativeTests: XCTestCase {
             XCTFail("Response should not be decoded for invalid model.")
         } catch let error as RequestError {
             switch error {
-            case .decode: XCTAssert(true)
+            case .decode(let context):
+                XCTAssertNotNil(context, "decode failure should carry a DecodingFailureContext")
             default: XCTFail("Error needs to be decode.")
             }
         } catch {

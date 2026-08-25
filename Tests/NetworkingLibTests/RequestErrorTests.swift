@@ -16,8 +16,18 @@ final class RequestErrorTests: XCTestCase {
     }
 
     func testDecodeCustomMessage() {
-        let error = RequestError.decode
+        let error = RequestError.decode(nil)
         XCTAssertEqual(error.customMessage, "Error while mapping a JSON response")
+    }
+
+    func testDecodeCustomMessageIncludesContextSummary() {
+        let context = DecodingFailureContext(kind: .keyNotFound,
+                                             codingPath: "resource.data.temp_token",
+                                             summary: "keyNotFound 'temp_token' at resource.data",
+                                             debugDescription: "No value associated with key ...")
+        let error = RequestError.decode(context)
+        XCTAssertEqual(error.customMessage,
+                       "Error while mapping a JSON response: keyNotFound 'temp_token' at resource.data")
     }
 
     func testInvalidRequestCustomMessage() {

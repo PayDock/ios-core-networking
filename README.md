@@ -190,9 +190,9 @@ do {
     case .connectionError(let urlError):
         // Handle network connection issues
         print("Connection error: \(urlError.localizedDescription)")
-    case .decode:
-        // Handle JSON decoding errors
-        print("Failed to decode response")
+    case .decode(let context):
+        // Handle JSON decoding errors. `context` (when available) identifies the offending field.
+        print("Failed to decode response: \(context?.summary ?? "unknown field")")
     case .invalidURL:
         // Handle invalid URL construction
         print("Invalid URL")
@@ -285,7 +285,8 @@ HTTP methods supported by the library:
 Error types for different failure scenarios:
 
 - `.connectionError(URLError)` - Network connectivity issues
-- `.decode` - JSON decoding failures
+- `.decode(DecodingFailureContext?)` - JSON decoding failures; the context identifies the offending
+  field (kind, coding path, summary) when the underlying error was a `DecodingError`
 - `.invalidRequest(URLError)` - Invalid request configuration
 - `.invalidURL` - URL construction failures
 - `.noResponse` - Missing HTTP response

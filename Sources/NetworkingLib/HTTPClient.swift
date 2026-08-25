@@ -185,7 +185,9 @@ extension HTTPClient {
                         try decoder.decode(responseModel, from: data)
                     }.value
                 } catch {
-                    throw RequestError.decode
+                    // Preserve which field failed to decode so consumers can log/report it.
+                    let context = (error as? DecodingError).map(DecodingFailureContext.init)
+                    throw RequestError.decode(context)
                 }
 
             default:

@@ -49,6 +49,14 @@ extension SSLPinningManager: URLSessionDelegate {
             return
         }
 
+        // Public-key pinning below is a check *in addition to* standard trust evaluation, not a
+        // replacement for it — without this, a certificate that fails ordinary chain-of-trust,
+        // expiry, or hostname validation could still be accepted as long as its key matched the pin.
+        guard SecTrustEvaluateWithError(serverTrust, nil) else {
+            completionHandler(.cancelAuthenticationChallenge, nil)
+            return
+        }
+
         guard let certs = SecTrustCopyCertificateChain(serverTrust) as? [SecCertificate],
               let serverCertificate = certs.first else {
             completionHandler(.cancelAuthenticationChallenge, nil)
